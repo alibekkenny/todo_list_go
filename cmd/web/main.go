@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"todo_list/internal/models"
 
@@ -23,22 +23,31 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	app := &application{
-		infoLog:  infoLog,
-		errorLog: errorLog,
-		users:    &models.UserModel{},
-		tasks:    &models.TaskModel{},
-	}
-
 	db, err := openDB(dsn)
 	if err != nil {
-		app.errorLog.Fatal(err)
+		errorLog.Fatal(err)
 		return
 	}
 
-	fmt.Println(db)
+	defer db.Close()
 
-	fmt.Println("success")
+	app := &application{
+		infoLog:  infoLog,
+		errorLog: errorLog,
+		users:    &models.UserModel{DB: db},
+		tasks:    &models.TaskModel{DB: db},
+	}
+
+	server := http.Server{
+		Addr:     ":4000",
+		ErrorLog: errorLog,
+		Handler:  app.routes(),
+	}
+
+	err = server.ListenAndServe()
+	if err != nil {
+		errorLog.Fatal(err)
+	}
 }
 
 func openDB(dsn string) (*pgxpool.Pool, error) {
