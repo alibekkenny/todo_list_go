@@ -18,15 +18,15 @@ type UserModel struct {
 }
 
 // Insert new user into db
-func (m *UserModel) Insert(nickname string, email string, password string) (int, error) {
+func (m *UserModel) Insert(nickname string, email string, password string) (*User, error) {
+	returnedInfo := &User{}
 	stmt := `INSERT INTO userinfo (nickname, email, password)
-	VALUES($1,$2,$3) RETURNING userId`
-	var returnedId int
-	err := m.DB.QueryRow(context.Background(), stmt, nickname, email, password).Scan(&returnedId)
+	VALUES($1,$2,$3) RETURNING userId, nickname, email`
+	err := m.DB.QueryRow(context.Background(), stmt, nickname, email, password).Scan(&returnedInfo.Id, &returnedInfo.Nickname, &returnedInfo.Email)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return returnedId, nil
+	return returnedInfo, nil
 }
 
 // Get user by given userid

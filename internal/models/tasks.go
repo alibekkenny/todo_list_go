@@ -22,15 +22,22 @@ type TaskModel struct {
 }
 
 // Insert new task into db
-func (m *TaskModel) Insert(title string, description string, tag string, expires time.Time, userId int) (int, error) {
-	stmt := `INSERT INTO task (title, description, tag, creation_date, expire_date, userId
-		VALUES($1,$2,$3,now(),$4,$5) RETURNING taskId`
-	var returnedId int
-	err := m.DB.QueryRow(context.Background(), stmt, title, description, tag, expires, userId).Scan(&returnedId)
+func (m *TaskModel) Insert(userId int, title string, description string, tag string, expires time.Time) (*Task, error) {
+	returnedInfo := &Task{}
+	stmt := `INSERT INTO task (title, description, tag, creation_date, expire_date, userId)
+		VALUES($1,$2,$3,now(),$4,$5) RETURNING taskId, title, description, tag,creation_date,expire_date,userId`
+	err := m.DB.QueryRow(context.Background(), stmt, title, description, tag, expires, userId).Scan(&returnedInfo.Id,
+		&returnedInfo.Title,
+		&returnedInfo.Description,
+		&returnedInfo.Tag,
+		&returnedInfo.Created,
+		&returnedInfo.Expires,
+		&returnedInfo.User.Id,
+	)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return returnedId, nil
+	return returnedInfo, nil
 }
 
 // Return task by given taskid
@@ -53,7 +60,7 @@ func (m *TaskModel) GetById(id int) (*Task, error) {
 
 // Return tasks by given userid
 func (m *TaskModel) GetByUserId(userId int) ([]*Task, error) {
-	stmt := `SELECT title,description,tag,creation_date,expire_date,userId FROM task WHERE userId=$1 ORDER BY creation_date DESC`
+	stmt := `SELECT taskId, title, description, tag, creation_date, expire_date, userId FROM task WHERE userId=$1 ORDER BY creation_date DESC`
 	rows, err := m.DB.Query(context.Background(), stmt, userId)
 	if err != nil {
 		return nil, err
