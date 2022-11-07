@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -18,7 +17,7 @@ func (app *application) routes() *httprouter.Router {
 	router.Handler(http.MethodGet, "/user/login", http.HandlerFunc(app.getLogin))
 	router.Handler(http.MethodPost, "/user/login", http.HandlerFunc(app.postLogin))
 
-	fmt.Println("Import \"fmt\"")
+	// fmt.Println("Import \"fmt\"")
 
 	return router
 }

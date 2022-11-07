@@ -19,7 +19,7 @@ type UserModel struct {
 
 // Insert new user into db
 func (m *UserModel) Insert(nickname string, email string, password string) (int, error) {
-	stmt := `INSERT INTO user (nickname, email, password)
+	stmt := `INSERT INTO userinfo (nickname, email, password)
 	VALUES($1,$2,$3) RETURNING userId`
 	var returnedId int
 	err := m.DB.QueryRow(context.Background(), stmt, nickname, email, password).Scan(&returnedId)
@@ -32,8 +32,8 @@ func (m *UserModel) Insert(nickname string, email string, password string) (int,
 // Get user by given userid
 func (m *UserModel) Get(id int) (*User, error) {
 	returnedInfo := &User{}
-	stmt := `SELECT * FROM user WHERE id = &1`
-	err := m.DB.QueryRow(context.Background(), stmt, id).Scan(&returnedInfo)
+	stmt := `SELECT userId,nickname,email FROM userinfo WHERE userId = $1`
+	err := m.DB.QueryRow(context.Background(), stmt, id).Scan(&returnedInfo.Id, &returnedInfo.Nickname, &returnedInfo.Email)
 	if err != nil {
 		return nil, err
 	}

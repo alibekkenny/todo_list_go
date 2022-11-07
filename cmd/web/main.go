@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -18,12 +20,14 @@ type application struct {
 }
 
 func main() {
-	dsn := "postgres://web:admin@localhost:5432/todo_list"
-
+	// dsn := "postgres://web:admin@localhost:5432/todo_list"
+	dsn := flag.String("dsn", fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable", "localhost", 5432, "postgres", "aliba", "todo_list"), "Postgresql data source name")
+	flag.Parse()
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	db, err := openDB(dsn)
+	db, err := openDB(*dsn)
 	if err != nil {
 		errorLog.Fatal(err)
 		return

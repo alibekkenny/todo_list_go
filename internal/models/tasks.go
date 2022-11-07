@@ -36,7 +36,7 @@ func (m *TaskModel) Insert(title string, description string, tag string, expires
 // Return task by given taskid
 func (m *TaskModel) GetById(id int) (*Task, error) {
 	returnedInfo := &Task{}
-	stmt := `SELECT * FROM task WHERE id=$1`
+	stmt := `SELECT * FROM task WHERE taskId=$1`
 	err := m.DB.QueryRow(context.Background(), stmt, id).Scan(&returnedInfo.Id,
 		&returnedInfo.Title,
 		&returnedInfo.Description,
@@ -53,7 +53,7 @@ func (m *TaskModel) GetById(id int) (*Task, error) {
 
 // Return tasks by given userid
 func (m *TaskModel) GetByUserId(userId int) ([]*Task, error) {
-	stmt := `SELECT * FROM task WHERE userId=$1 ORDER BY creation_date DESC`
+	stmt := `SELECT title,description,tag,creation_date,expire_date,userId FROM task WHERE userId=$1 ORDER BY creation_date DESC`
 	rows, err := m.DB.Query(context.Background(), stmt, userId)
 	if err != nil {
 		return nil, err

@@ -23,12 +23,12 @@ func (app *application) getSignup(w http.ResponseWriter, r *http.Request) {
 func (app *application) postSignup(w http.ResponseWriter, r *http.Request) {
 
 	userId, err := app.users.Insert("danik", "myEmail", "myPassword")
+	createdUser, err := app.users.Get(userId)
 	if err != nil {
 		app.errorLog.Fatal(err)
 	}
-
-	fmt.Println(userId)
-
+	w.Write([]byte(fmt.Sprintf("Id:%d, nickname:%s, email:%s", createdUser.Id, createdUser.Nickname, createdUser.Email)))
+	// fmt.Println(userId)
 }
 
 func (app *application) getLogin(w http.ResponseWriter, r *http.Request) {
