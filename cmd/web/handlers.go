@@ -10,7 +10,12 @@ import (
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello world"))
+	if r.URL.Path != "/" {
+		w.Write([]byte("Not found!"))
+	}
+	data := app.newTemplateData(r)
+
+	app.render(w, http.StatusOK, "index_2.tmpl", data)
 }
 
 func (app *application) viewTask(w http.ResponseWriter, r *http.Request) {

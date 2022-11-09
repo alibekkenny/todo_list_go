@@ -7,16 +7,18 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"text/template"
 	"todo_list/internal/models"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type application struct {
-	infoLog  *log.Logger
-	errorLog *log.Logger
-	users    *models.UserModel
-	tasks    *models.TaskModel
+	infoLog       *log.Logger
+	errorLog      *log.Logger
+	templateCache map[string]*template.Template
+	users         *models.UserModel
+	tasks         *models.TaskModel
 }
 
 func main() {

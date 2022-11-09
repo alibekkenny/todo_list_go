@@ -60,7 +60,7 @@ func (m *TaskModel) GetById(id int) (*Task, error) {
 
 // Return tasks by given userid
 func (m *TaskModel) GetByUserId(userId int) ([]*Task, error) {
-	stmt := `SELECT taskId, title, description, tag, creation_date, expire_date, userId FROM task WHERE userId=$1 ORDER BY creation_date DESC`
+	stmt := `SELECT taskId, title, description, tag, creation_date, expire_date, userId FROM task WHERE userId=$1 ORDER BY creation_date ASC`
 	rows, err := m.DB.Query(context.Background(), stmt, userId)
 	if err != nil {
 		return nil, err
