@@ -37,11 +37,17 @@ func main() {
 
 	defer db.Close()
 
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
 	app := &application{
-		infoLog:  infoLog,
-		errorLog: errorLog,
-		users:    &models.UserModel{DB: db},
-		tasks:    &models.TaskModel{DB: db},
+		infoLog:       infoLog,
+		errorLog:      errorLog,
+		users:         &models.UserModel{DB: db},
+		tasks:         &models.TaskModel{DB: db},
+		templateCache: templateCache,
 	}
 
 	server := http.Server{
@@ -50,6 +56,7 @@ func main() {
 		Handler:  app.routes(),
 	}
 
+	fmt.Println("Started listening")
 	err = server.ListenAndServe()
 	if err != nil {
 		errorLog.Fatal(err)
