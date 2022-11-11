@@ -99,13 +99,30 @@ func (app *application) getSignup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) postSignup(w http.ResponseWriter, r *http.Request) {
-	var form userRegisterForm
-	fmt.Println(r.Body)
-	err := app.decodePostForm(r, &form)
+	err := r.ParseForm()
 	if err != nil {
-		app.errorLog.Fatal(err)
+		fmt.Println(err)
+		app.clientError(w, http.StatusBadRequest)
 		return
 	}
+
+	name := r.PostForm.Get("nickname")
+	email := r.PostForm.Get("email")
+	password := r.PostForm.Get("password")
+
+	fmt.Println("*****", r.Body, "***", name, email, password)
+	// err = app.decodePostForm(r, &form)
+	// if err != nil {
+	// 	app.errorLog.Fatal(err)
+	// 	return
+	// }
+
+	form := userRegisterForm{
+		Nickname: name,
+		Email:    email,
+		Password: password,
+	}
+
 	form.CheckField(validator.NotBlank(form.Nickname), "nickname", "This field cannot be blank")
 	form.CheckField(validator.NotBlank(form.Email), "email", "This field cannot be blank")
 	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", "This field must be a valid email address")

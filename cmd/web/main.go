@@ -13,7 +13,7 @@ import (
 
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
-	"github.com/go-playground/form"
+	"github.com/go-playground/form/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
