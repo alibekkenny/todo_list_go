@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-type Task struct {
+type Todo struct {
 	Id          int
 	Title       string
 	Description string
@@ -17,13 +17,13 @@ type Task struct {
 	User        User
 }
 
-type TaskModel struct {
+type TodoModel struct {
 	DB *pgxpool.Pool
 }
 
 // Insert new task into db
-func (m *TaskModel) Insert(userId int, title string, description string, tag string, expires time.Time) (*Task, error) {
-	returnedInfo := &Task{}
+func (m *TodoModel) Insert(userId int, title string, description string, tag string, expires time.Time) (*Todo, error) {
+	returnedInfo := &Todo{}
 	stmt := `INSERT INTO task (title, description, tag, creation_date, expire_date, userId)
 		VALUES($1,$2,$3,now(),$4,$5) RETURNING taskId, title, description, tag,creation_date,expire_date,userId`
 	err := m.DB.QueryRow(context.Background(), stmt, title, description, tag, expires, userId).Scan(&returnedInfo.Id,
@@ -41,8 +41,8 @@ func (m *TaskModel) Insert(userId int, title string, description string, tag str
 }
 
 // Return task by given taskid
-func (m *TaskModel) GetById(id int) (*Task, error) {
-	returnedInfo := &Task{}
+func (m *TodoModel) GetById(id int) (*Todo, error) {
+	returnedInfo := &Todo{}
 	stmt := `SELECT * FROM task WHERE taskId=$1`
 	err := m.DB.QueryRow(context.Background(), stmt, id).Scan(&returnedInfo.Id,
 		&returnedInfo.Title,
@@ -59,16 +59,16 @@ func (m *TaskModel) GetById(id int) (*Task, error) {
 }
 
 // Return tasks by given userid
-func (m *TaskModel) GetByUserId(userId int) ([]*Task, error) {
+func (m *TodoModel) GetByUserId(userId int) ([]*Todo, error) {
 	stmt := `SELECT taskId, title, description, tag, creation_date, expire_date, userId FROM task WHERE userId=$1 ORDER BY creation_date ASC`
 	rows, err := m.DB.Query(context.Background(), stmt, userId)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	tasks := []*Task{}
+	tasks := []*Todo{}
 	for rows.Next() {
-		item := &Task{}
+		item := &Todo{}
 		err = rows.Scan(&item.Id,
 			&item.Title,
 			&item.Description,

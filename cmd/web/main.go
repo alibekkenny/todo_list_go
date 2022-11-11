@@ -18,7 +18,7 @@ type application struct {
 	errorLog      *log.Logger
 	templateCache map[string]*template.Template
 	users         *models.UserModel
-	tasks         *models.TaskModel
+	todos         *models.TodoModel
 }
 
 func main() {
@@ -46,7 +46,7 @@ func main() {
 		infoLog:       infoLog,
 		errorLog:      errorLog,
 		users:         &models.UserModel{DB: db},
-		tasks:         &models.TaskModel{DB: db},
+		todos:         &models.TodoModel{DB: db},
 		templateCache: templateCache,
 	}
 

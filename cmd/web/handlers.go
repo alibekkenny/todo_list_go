@@ -18,7 +18,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	app.render(w, http.StatusOK, "index_2.tmpl", data)
 }
 
-func (app *application) viewTask(w http.ResponseWriter, r *http.Request) {
+func (app *application) viewTodo(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
 	userId, err := strconv.Atoi(params.ByName("id"))
 	if err != nil || userId < 1 {
@@ -26,17 +26,17 @@ func (app *application) viewTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tasks, err := app.tasks.GetByUserId(userId)
+	todos, err := app.todos.GetByUserId(userId)
 	if err != nil {
 		app.errorLog.Fatal(err)
 	}
 	fmt.Fprintf(w, fmt.Sprintf("User id: %d\n", userId))
-	for _, task := range tasks {
-		fmt.Fprintf(w, "%+v\n", task)
+	for _, todo := range todos {
+		fmt.Fprintf(w, "%+v\n", todo)
 	}
 }
 
-func (app *application) createTask(w http.ResponseWriter, r *http.Request) {
+func (app *application) createTodo(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
 	userId, err := strconv.Atoi(params.ByName("id"))
 	if err != nil || userId < 1 {
@@ -44,8 +44,8 @@ func (app *application) createTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdTask, err := app.tasks.Insert(userId, "Exam preparation", "Prepare for an exam on the course DBMS", "study", time.Now().AddDate(0, 0, 10))
-	fmt.Fprintf(w, "%+v\n", createdTask)
+	createdtodo, err := app.todos.Insert(userId, "Exam preparation", "Prepare for an exam on the course DBMS", "study", time.Now().AddDate(0, 0, 10))
+	fmt.Fprintf(w, "%+v\n", createdtodo)
 	// w.Write([]byte("create todo"))
 }
 
