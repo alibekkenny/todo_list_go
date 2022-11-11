@@ -15,7 +15,18 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	}
 	data := app.newTemplateData(r)
 
-	app.render(w, http.StatusOK, "index_2.tmpl", data)
+	app.render(w, http.StatusOK, "home.html", data)
+}
+
+func (app *application) getTodo(w http.ResponseWriter, r *http.Request) {
+	userId := 1
+	todos, err := app.todos.GetByUserId(userId)
+	if err != nil {
+		app.errorLog.Fatal(err)
+	}
+	data := app.newTemplateData(r)
+	data.Todos = todos
+	app.render(w, http.StatusOK, "todo.html", data)
 }
 
 func (app *application) viewTodo(w http.ResponseWriter, r *http.Request) {
@@ -44,14 +55,20 @@ func (app *application) createTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdtodo, err := app.todos.Insert(userId, "Exam preparation", "Prepare for an exam on the course DBMS", "study", time.Now().AddDate(0, 0, 10))
-	fmt.Fprintf(w, "%+v\n", createdtodo)
+	createdTodo, err := app.todos.Insert(userId, "Exam preparation", "Prepare for an exam on the course DBMS", "study", time.Now().AddDate(0, 0, 10))
+	if err != nil {
+		app.errorLog.Fatal(err)
+	}
+	fmt.Fprintf(w, "%+v\n", createdTodo)
 	// w.Write([]byte("create todo"))
 }
 
 func (app *application) getSignup(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("get registration template"))
+	data := app.newTemplateData(r)
+
+	app.render(w, http.StatusOK, "register.html", data)
 }
+
 func (app *application) postSignup(w http.ResponseWriter, r *http.Request) {
 	createdUser, err := app.users.Insert("aliba", "example_email", "123456")
 	if err != nil {
@@ -63,7 +80,9 @@ func (app *application) postSignup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) getLogin(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("get login template"))
+	data := app.newTemplateData(r)
+
+	app.render(w, http.StatusOK, "login.html", data)
 }
 
 func (app *application) postLogin(w http.ResponseWriter, r *http.Request) {
