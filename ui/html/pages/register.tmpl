@@ -1,10 +1,13 @@
-{{define "title"}}Login{{end}} {{define "css"}}
+{{define "title"}}Register {{end}} {{define "css"}}
 <link rel="stylesheet" href="/static/css/login_style.css">{{end}} {{define "main"}}
 
 <body>
     <div class="login-box">
-        <h2>Login</h2>
-        <form action="/user/login" method="POST">
+        <h2>Register</h2>
+        <form action="/user/signup" method="POST">
+            <div class="user-box">
+                <input type="text" name="nickname" required="" value="{{.Form.Nickname}}"> <label>Nickname</label> {{with .Form.FieldErrors.nickname}}<label class='error'>{{.}}</label> {{end}}
+            </div>
             <div class="user-box">
                 <input type="email" name="email" required="" value="{{.Form.Email}}">
                 <label>Email</label> {{with .Form.FieldErrors.email}}<label class='error'>{{.}}</label> {{end}}
@@ -18,4 +21,6 @@
     </div>
     <script src="/static/js/script_login.js"></script>
 </body>
+
+
 {{end}}

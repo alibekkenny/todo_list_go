@@ -43,6 +43,16 @@ func (m *UserModel) Get(id int) (*User, error) {
 	return returnedInfo, nil
 }
 
+func (m *UserModel) CheckUserExists(email string) (bool, error) {
+	userId := -1
+	stmt := `SELECT userId FROM userinfo WHERE email LIKE $1`
+	err := m.DB.QueryRow(context.Background(), stmt, email).Scan(userId)
+	if err != nil || userId == -1 {
+		return false, err
+	}
+	return true, nil
+}
+
 // We'll use the Authenticate method to verify whether a user exists with
 // the provided email address and password. This will return the relevant
 // user ID if they do.

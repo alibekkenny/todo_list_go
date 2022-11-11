@@ -85,20 +85,84 @@ func (app *application) createTodo(w http.ResponseWriter, r *http.Request) {
 	// w.Write([]byte("create todo"))
 }
 
+type userRegisterForm struct {
+	Nickname            string `form:"nickname"`
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
 func (app *application) getSignup(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
-
+	data.Form = userRegisterForm{}
 	app.render(w, http.StatusOK, "register.html", data)
 }
 
 func (app *application) postSignup(w http.ResponseWriter, r *http.Request) {
-	createdUser, err := app.users.Insert("aliba", "example_email", "123456")
+	var form userRegisterForm
+	fmt.Println(r.Body)
+	err := app.decodePostForm(r, &form)
 	if err != nil {
 		app.errorLog.Fatal(err)
+		return
 	}
-	// w.Write([]byte(fmt.Sprintf("Id:%d, nickname:%s, email:%s", createdUser.Id, createdUser.Nickname, createdUser.Email)))
-	fmt.Fprintf(w, "%+v\n", createdUser)
-	// fmt.Println(userId)
+	form.CheckField(validator.NotBlank(form.Nickname), "nickname", "This field cannot be blank")
+	form.CheckField(validator.NotBlank(form.Email), "email", "This field cannot be blank")
+	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", "This field must be a valid email address")
+	form.CheckField(validator.NotBlank(form.Password), "password", "This field cannot be blank")
+	if !form.Valid() {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, http.StatusUnprocessableEntity, "register.html", data)
+		return
+	}
+
+	// Check whether the credentials are valid. If they're not, add a generic
+	// non-field error message and re-display the login page.
+	userExists, err := app.users.CheckUserExists(form.Email)
+	if err != nil {
+		if errors.Is(err, models.ErrInvalidCredentials) {
+			form.AddNonFieldError("Email is unavaliable!")
+			data := app.newTemplateData(r)
+			data.Form = form
+			app.render(w, http.StatusUnprocessableEntity, "register.html", data)
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+	if userExists {
+		form.AddNonFieldError("Email is unavaliable!")
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, http.StatusUnprocessableEntity, "register.html", data)
+	}
+
+	createdUser, err := app.users.Insert(form.Nickname, form.Email, form.Password)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	// Use the RenewToken() method on the current session to change the session
+	// ID. It's good practice to generate a new session ID when the
+	// authentication state or privilege levels changes for the user (e.g. login
+	// and logout operations).
+	// The SessionManager.RenewToken() method that we’re using in the code above
+	// will change the ID of the current user’s session but retain any data
+	// associated with the session. It’s good practice to do this before login
+	// to mitigate the risk of a session fixation attack.
+	err = app.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// Add the ID of the current user to the session, so that they are now
+	// 'logged in'.
+	app.sessionManager.Put(r.Context(), "authenticatedUserID", createdUser.Id)
+
+	// Redirect the user to the create snippet page.
+	http.Redirect(w, r, "/todo/", http.StatusSeeOther)
 }
 
 type userLoginForm struct {
@@ -109,7 +173,7 @@ type userLoginForm struct {
 
 func (app *application) getLogin(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
-
+	data.Form = userLoginForm{}
 	app.render(w, http.StatusOK, "login.html", data)
 }
 
@@ -133,7 +197,7 @@ func (app *application) postLogin(w http.ResponseWriter, r *http.Request) {
 	if !form.Valid() {
 		data := app.newTemplateData(r)
 		data.Form = form
-		app.render(w, http.StatusUnprocessableEntity, "login.tmpl.html", data)
+		app.render(w, http.StatusUnprocessableEntity, "login.html", data)
 		return
 	}
 
@@ -171,5 +235,5 @@ func (app *application) postLogin(w http.ResponseWriter, r *http.Request) {
 	app.sessionManager.Put(r.Context(), "authenticatedUserID", id)
 
 	// Redirect the user to the create snippet page.
-	http.Redirect(w, r, "/snippet/create", http.StatusSeeOther)
+	http.Redirect(w, r, "/todo/", http.StatusSeeOther)
 }
