@@ -10,6 +10,7 @@ import (
 	"text/template"
 	"todo_list/internal/models"
 
+	"github.com/go-playground/form"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -19,6 +20,7 @@ type application struct {
 	templateCache map[string]*template.Template
 	users         *models.UserModel
 	todos         *models.TodoModel
+	formDecoder   *form.Decoder
 }
 
 func main() {

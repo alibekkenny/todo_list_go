@@ -55,7 +55,5 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		// (like 'home.tmpl') as the key.
 		cache[name] = ts
 	}
-
 	return cache, nil
-
 }
