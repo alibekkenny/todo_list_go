@@ -62,7 +62,7 @@ func main() {
 	}
 
 	server := http.Server{
-		Addr:     ":4000",
+		Addr:     "localhost:4000",
 		ErrorLog: errorLog,
 		Handler:  app.routes(),
 	}
