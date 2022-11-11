@@ -8,17 +8,21 @@ import (
 	"net/http"
 	"os"
 	"text/template"
+	"time"
 	"todo_list/internal/models"
 
+	"github.com/alexedwards/scs/pgxstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type application struct {
-	infoLog       *log.Logger
-	errorLog      *log.Logger
-	templateCache map[string]*template.Template
-	users         *models.UserModel
-	todos         *models.TodoModel
+	infoLog        *log.Logger
+	errorLog       *log.Logger
+	templateCache  map[string]*template.Template
+	users          *models.UserModel
+	todos          *models.TodoModel
+	sessionManager *scs.SessionManager
 }
 
 func main() {
@@ -42,12 +46,17 @@ func main() {
 		errorLog.Fatal(err)
 	}
 
+	sessionManager := scs.New()
+	sessionManager.Store = pgxstore.New(db)
+	sessionManager.Lifetime = 12 * time.Hour
+
 	app := &application{
-		infoLog:       infoLog,
-		errorLog:      errorLog,
-		users:         &models.UserModel{DB: db},
-		todos:         &models.TodoModel{DB: db},
-		templateCache: templateCache,
+		infoLog:        infoLog,
+		errorLog:       errorLog,
+		users:          &models.UserModel{DB: db},
+		todos:          &models.TodoModel{DB: db},
+		templateCache:  templateCache,
+		sessionManager: sessionManager,
 	}
 
 	server := http.Server{
