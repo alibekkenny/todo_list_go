@@ -14,6 +14,7 @@ require (
 )
 
 require (
+	github.com/go-playground/form v3.1.4+incompatible // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect

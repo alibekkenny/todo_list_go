@@ -5,9 +5,17 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"todo_list/internal/validator"
 
 	"github.com/julienschmidt/httprouter"
 )
+
+type todoCreateForm struct {
+	Title               string    `form:"title"`
+	Description         string    `form:"description"`
+	Expires             time.Time `form:"expires"`
+	validator.Validator `form:"-"`
+}
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
@@ -25,6 +33,7 @@ func (app *application) getTodo(w http.ResponseWriter, r *http.Request) {
 		app.errorLog.Fatal(err)
 	}
 	data := app.newTemplateData(r)
+	data.Form = todoCreateForm{}
 	data.Todos = todos
 	app.render(w, http.StatusOK, "todo.html", data)
 }
@@ -48,18 +57,29 @@ func (app *application) viewTodo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) createTodo(w http.ResponseWriter, r *http.Request) {
-	params := httprouter.ParamsFromContext(r.Context())
-	userId, err := strconv.Atoi(params.ByName("id"))
-	if err != nil || userId < 1 {
+	var form todoCreateForm
+	err := app.decodePostForm(r, &form)
+	if err != nil {
+		app.errorLog.Fatal(err)
+		return
+	}
+	form.CheckField(validator.NotBlank(form.Title), "title", "This field cannot be blank")
+	form.CheckField(validator.MaxChars(form.Title, 100), "title", "This field cannot be more than 100 characters long")
+	form.CheckField(validator.NotBlank(form.Description), "description", "This field cannot be blank")
+	if !form.Valid() {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, http.StatusUnprocessableEntity, "todo.html", data)
+		return
+	}
+	userId := 1
+	err = app.todos.Insert(userId, form.Title, form.Description, form.Expires)
+	if err != nil {
 		app.errorLog.Fatal(err)
 		return
 	}
 
-	createdTodo, err := app.todos.Insert(userId, "Exam preparation", "Prepare for an exam on the course DBMS", "study", time.Now().AddDate(0, 0, 10))
-	if err != nil {
-		app.errorLog.Fatal(err)
-	}
-	fmt.Fprintf(w, "%+v\n", createdTodo)
+	http.Redirect(w, r, "/todos/", http.StatusSeeOther)
 	// w.Write([]byte("create todo"))
 }
 

@@ -13,6 +13,7 @@ import (
 
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
+	"github.com/go-playground/form"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -23,6 +24,7 @@ type application struct {
 	users          *models.UserModel
 	todos          *models.TodoModel
 	sessionManager *scs.SessionManager
+	formDecoder    *form.Decoder
 }
 
 func main() {
