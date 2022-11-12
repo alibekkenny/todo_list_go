@@ -186,12 +186,28 @@ func (app *application) getLogin(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) postLogin(w http.ResponseWriter, r *http.Request) {
 	// Decode the form data into the userLoginForm struct.
-	var form userLoginForm
-
-	err := app.decodePostForm(r, &form)
+	err := r.ParseForm()
 	if err != nil {
+		fmt.Println(err)
 		app.clientError(w, http.StatusBadRequest)
 		return
+	}
+
+	name := r.PostForm.Get("nickname")
+	email := r.PostForm.Get("email")
+	password := r.PostForm.Get("password")
+
+	// fmt.Println("*****", r.Body, "***", name, email, password)
+	// err = app.decodePostForm(r, &form)
+	// if err != nil {
+	// 	app.errorLog.Fatal(err)
+	// 	return
+	// }
+
+	form := userRegisterForm{
+		Nickname: name,
+		Email:    email,
+		Password: password,
 	}
 
 	// Do some validation checks on the form. We check that both email and

@@ -19,8 +19,8 @@ func (app *application) routes() http.Handler {
 	dynamic := alice.New(app.sessionManager.LoadAndSave)
 
 	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(http.HandlerFunc(app.home)))
-	router.Handler(http.MethodGet, "/signup", dynamic.ThenFunc(http.HandlerFunc(app.getSignup)))
-	router.Handler(http.MethodGet, "/login", dynamic.ThenFunc(http.HandlerFunc(app.getLogin)))
+	router.Handler(http.MethodGet, "/user/signup", dynamic.ThenFunc(http.HandlerFunc(app.getSignup)))
+	router.Handler(http.MethodGet, "/user/login", dynamic.ThenFunc(http.HandlerFunc(app.getLogin)))
 	router.Handler(http.MethodGet, "/todo", dynamic.ThenFunc(http.HandlerFunc(app.getTodo)))
 
 	//api's for work with db

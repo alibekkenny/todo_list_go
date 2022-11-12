@@ -25,7 +25,11 @@ func (m *UserModel) Insert(nickname string, email string, password string) (*Use
 	returnedInfo := &User{}
 	stmt := `INSERT INTO userinfo (nickname, email, password)
 	VALUES($1,$2,$3) RETURNING userId, nickname, email`
-	err := m.DB.QueryRow(context.Background(), stmt, nickname, email, password).Scan(&returnedInfo.Id, &returnedInfo.Nickname, &returnedInfo.Email)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	if err != nil {
+		return nil, err
+	}
+	err = m.DB.QueryRow(context.Background(), stmt, nickname, email, hash).Scan(&returnedInfo.Id, &returnedInfo.Nickname, &returnedInfo.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +69,7 @@ func (m *UserModel) Authenticate(email, password string) (int, error) {
 	// no matching email exists we return the ErrInvalidCredentials error.
 	var id int
 	var hashedPassword []byte
-	stmt := "SELECT id, hashed_password FROM users WHERE email = $1"
+	stmt := "SELECT userid, password FROM userinfo WHERE email = $1"
 	err := m.DB.QueryRow(context.Background(), stmt, email).Scan(&id, &hashedPassword)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
