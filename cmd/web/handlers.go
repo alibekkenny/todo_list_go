@@ -153,6 +153,7 @@ func (app *application) postSignup(w http.ResponseWriter, r *http.Request) {
 		data := app.newTemplateData(r)
 		data.Form = form
 		// http.Redirect(w, r, "/signup/", http.StatusSeeOther)
+		// return
 		app.render(w, http.StatusUnprocessableEntity, "register.html", data)
 	}
 
