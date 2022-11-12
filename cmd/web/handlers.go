@@ -139,7 +139,7 @@ func (app *application) postSignup(w http.ResponseWriter, r *http.Request) {
 	userExists, err := app.users.CheckUserExists(form.Email)
 	if err != nil {
 		if errors.Is(err, models.ErrInvalidCredentials) {
-			form.AddNonFieldError("Email is unavaliable!")
+			form.AddNonFieldError("Something went wrong!")
 			data := app.newTemplateData(r)
 			data.Form = form
 			app.render(w, http.StatusUnprocessableEntity, "register.html", data)
@@ -149,9 +149,10 @@ func (app *application) postSignup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if userExists {
-		form.AddNonFieldError("Email is unavaliable!")
+		form.AddFieldError("email", "Email is unavaliable!")
 		data := app.newTemplateData(r)
 		data.Form = form
+		// http.Redirect(w, r, "/signup/", http.StatusSeeOther)
 		app.render(w, http.StatusUnprocessableEntity, "register.html", data)
 	}
 
@@ -160,25 +161,13 @@ func (app *application) postSignup(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
-	// Use the RenewToken() method on the current session to change the session
-	// ID. It's good practice to generate a new session ID when the
-	// authentication state or privilege levels changes for the user (e.g. login
-	// and logout operations).
-	// The SessionManager.RenewToken() method that we’re using in the code above
-	// will change the ID of the current user’s session but retain any data
-	// associated with the session. It’s good practice to do this before login
-	// to mitigate the risk of a session fixation attack.
 	err = app.sessionManager.RenewToken(r.Context())
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
-
-	// Add the ID of the current user to the session, so that they are now
-	// 'logged in'.
 	app.sessionManager.Put(r.Context(), "authenticatedUserID", createdUser.Id)
 
-	// Redirect the user to the create snippet page.
 	http.Redirect(w, r, "/todo/", http.StatusSeeOther)
 }
 
