@@ -59,11 +59,24 @@ func (app *application) viewTodo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) createTodo(w http.ResponseWriter, r *http.Request) {
-	var form todoCreateForm
-	err := app.decodePostForm(r, &form)
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Println(err)
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	title := r.PostForm.Get("title")
+	description := r.PostForm.Get("description")
+	expires, err := time.Parse("2001-01-01", r.PostForm.Get("expires"))
 	if err != nil {
 		app.errorLog.Fatal(err)
 		return
+	}
+	form := todoCreateForm{
+		Title:       title,
+		Description: description,
+		Expires:     expires,
 	}
 	form.CheckField(validator.NotBlank(form.Title), "title", "This field cannot be blank")
 	form.CheckField(validator.MaxChars(form.Title, 100), "title", "This field cannot be more than 100 characters long")
