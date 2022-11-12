@@ -51,6 +51,10 @@ func main() {
 	sessionManager := scs.New()
 	sessionManager.Store = pgxstore.New(db)
 	sessionManager.Lifetime = 12 * time.Hour
+	// Make sure that the Secure attribute is set on our session cookies.
+	// Setting this means that the cookie will only be sent by a user's web
+	// browser when a HTTPS connection is being used (and won't be sent over an // unsecure HTTP connection).
+	sessionManager.Cookie.Secure = true
 
 	app := &application{
 		infoLog:        infoLog,
@@ -68,7 +72,7 @@ func main() {
 	}
 
 	fmt.Println("Started listening")
-	err = server.ListenAndServe()
+	err = server.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
 	if err != nil {
 		errorLog.Fatal(err)
 	}
